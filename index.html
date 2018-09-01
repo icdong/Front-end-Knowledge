@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>前端排序算法实现---www.icdong.com</title>
+    </head>
+    <body>
+        <script type="text/javascript">
+
+            let arrayTest = [];
+            for (let i = 0; i < 10; i++) {
+                arrayTest.push(Math.floor(Math.random()*1000 + 1));
+            }
+
+            let bubbleArray = [].concat(arrayTest);
+            let selectArray = [].concat(arrayTest);
+            let insertArray = [].concat(arrayTest);
+            let shellArray = [].concat(arrayTest);
+
+            //冒泡
+            // 时间复杂度 O(n^2)
+            let bubble = (array) => {
+                console.time('冒泡');
+                for (let i = 0; i < array.length; i++) {
+                    for (let j = 0; j < array.length-i; j++) {
+                        if (array[j]>array[j+1]) {
+                            let temp = array[j+1];
+                            array[j+1] = array[j];
+                            array[j] = temp;
+                        }
+                    }
+                }
+                console.timeEnd('冒泡');
+                // return array;
+            }
+            bubble(bubbleArray);
+            // console.log(bubble(bubbleArray));
+
+
+            // 选择
+            // 时间复杂度 O(n^2)
+            let select = (array) => {
+                console.time('选择');
+                for (let i = 0; i < array.length; i++) {
+                    let min = i;
+                    for (var j = i+1; j < array.length; j++) {
+                        if (array[j]<array[min]) {
+                            min = j;
+                        }
+                    }
+                    if (min!=i) {
+                        let temp = array[min];
+                        array[min] = array[i];
+                        array[i] = temp;
+                    }
+                }
+                console.timeEnd('选择');
+                // return array;
+            }
+            select(selectArray);
+            // console.log(select(selectArray));
+
+            // 插入
+            // 时间复杂度 O()
+            let insert = (array) => {
+                console.time('插入');
+                for (let i = 0; i < array.length; i++) {
+                    let get = array[i];
+                    let j = i - 1;
+                    while (j>=0 && array[j]>get) {
+                        array[j+1] = array[j];
+                        j--;
+                    }
+                    array[j+1] = get;
+                }
+                console.timeEnd('插入');
+                // return array;
+            }
+            insert(selectArray);
+            // console.log(insert(insertArray));
+
+            // 希尔
+            // 时间复杂度 O()
+            let shell = (array) => {
+                console.time('希尔');
+                let h = 0;
+                while (h<=array.length) {
+                    h = h*3+1;
+                }
+                while (h>=1) {
+                    for (var i = 0; i < array.length; i++) {
+                        let j = i-h;
+                        let getShell = array[i];
+                        while (j>=0 && array[j]>getShell) {
+                            array[j+h] = array[j];
+                            j=j-h;
+                        }
+                        array[j+h]  =getShell;
+                    }
+                    h = (h-1)/3;
+                }
+                console.timeEnd('希尔');
+                // return array;
+            }
+            shell(shellArray);
+            // console.log(shell(shellArray));
+        </script>
+    </body>
+</html>
