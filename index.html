@@ -12,7 +12,7 @@
         <script type="text/javascript">
 
             let arrayTest = [];
-            for (let i = 0; i < 30000; i++) {
+            for (let i = 0; i < 10000; i++) {
                 arrayTest.push(Math.floor(Math.random()*1000 + 1));
             }
 
@@ -21,12 +21,12 @@
             let insertArray = [].concat(arrayTest);
             let shellArray = [].concat(arrayTest);
             let heapArray = [].concat(arrayTest);
+            let mergeArray = [].concat(arrayTest);
 
             // 冒泡
             // 时间复杂度：第一趟排序需要经过（n-1）次比较，第二次（n-2），。。。等差数列，最后忽略系数还是O(n^2)
             // 空间复杂度：O(1)
             let bubble = (array) => {
-                console.time('冒泡');
                 for (let i = 0; i < array.length; i++) {
                     for (let j = 0; j < array.length-i; j++) {
                         if (array[j]>array[j+1]) {
@@ -36,10 +36,11 @@
                         }
                     }
                 }
-                console.timeEnd('冒泡');
                 // return array;
             }
+            console.time('冒泡');
             bubble(bubbleArray);
+            console.timeEnd('冒泡');
             // console.log(bubble(bubbleArray));
 
 
@@ -47,7 +48,6 @@
             // 时间复杂度：选择排序在最好和最坏的情况下都是O(n^2)，因为，即使有序了，选择排序依然每次要进行固定的选择和比较。
             // 空间复杂度分析：O(1)
             let select = (array) => {
-                console.time('选择');
                 for (let i = 0; i < array.length; i++) {
                     let min = i;
                     for (var j = i+1; j < array.length; j++) {
@@ -61,10 +61,11 @@
                         array[i] = temp;
                     }
                 }
-                console.timeEnd('选择');
                 // return array;
             }
+            console.time('选择');
             select(selectArray);
+            console.timeEnd('选择');
             // console.log(select(selectArray));
 
             // 插入
@@ -94,7 +95,6 @@
             // 时间复杂度 介于O(n)至O(n^2)之间，相关资料显示其具体复杂度为O(n^1.3)次方
             // 空间复杂度 O(1)
             let shell = (array) => {
-                console.time('希尔');
                 let h = 0;
                 while (h<=array.length) {
                     h = h*3+1;
@@ -111,12 +111,13 @@
                     }
                     h = (h-1)/3;
                 }
-                console.timeEnd('希尔');
                 // return array;
             }
+            console.time('希尔');
             shell(shellArray);
+            console.timeEnd('希尔');
             // console.log(shell(shellArray));
-            
+
             // 堆排序
             // 时间复杂度
             // 最佳情况：T(n) = O(nlogn)
@@ -160,7 +161,6 @@
             }
 
             let heap = (array) => {
-                console.time('堆排序');
                 let length = array.length;
                 buildHeap(array, length);
                 for (i = length - 1; i >= 0; i--) {
@@ -169,10 +169,56 @@
                     array[i] = temp;
                     heapDown(array, 0, i)
                 }
-                console.timeEnd('堆排序');
             }
+            console.time('堆排序');
             heap(heapArray);
-            
+            console.timeEnd('堆排序');
+
+
+            // 归并排序
+            /**
+             * 归并排序是一种稳定的排序方法。将已有序的子序列合并，得到完全有序的序列；
+             * 即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为2-路归并。
+             *
+             * <1>.把长度为n的输入序列分成两个长度为n/2的子序列；
+             * <2>.对这两个子序列分别采用归并排序；
+             * <3>.将两个排序好的子序列合并成一个最终的排序序列。
+             *
+             */
+            let mergeSort = (array) => {
+                let length = array.length;
+                if (length<2) {
+                    return array;
+                }
+
+                let middle = Math.floor(length/2),
+                    left = array.slice(0, middle),
+                    right = array.slice(middle);
+                return merge(mergeSort(left), mergeSort(right));
+            }
+
+            let merge = (left, right) => {
+                let result = [];
+                while (left.length && right.length) {
+                    if (left[0] <= right[0]) {
+                        result.push(left.shift());
+                    } else {
+                        result.push(right.shift());
+                    }
+                }
+
+                while (left.length) result.push(left.shift());
+                while (right.length) result.push(right.shift());
+
+                return result;
+            }
+
+            console.time('归并');
+            mergeSort(mergeArray);
+            console.timeEnd('归并');
+
+
+            // 快速排序
         </script>
     </body>
 </html>
