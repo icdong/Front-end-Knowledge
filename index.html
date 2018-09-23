@@ -26,9 +26,10 @@
             // 冒泡
             // 时间复杂度：第一趟排序需要经过（n-1）次比较，第二次（n-2），。。。等差数列，最后忽略系数还是O(n^2)
             // 空间复杂度：O(1)
-            let bubble = (array) => {
-                for (let i = 0; i < array.length; i++) {
-                    for (let j = 0; j < array.length-i; j++) {
+            const bubble = (array) => {
+                let length = array.length;
+                for (let i = 0; i < length; i++) {
+                    for (let j = 0; j < length-i; j++) {
                         if (array[j]>array[j+1]) {
                             let temp = array[j+1];
                             array[j+1] = array[j];
@@ -47,10 +48,11 @@
             // 选择
             // 时间复杂度：选择排序在最好和最坏的情况下都是O(n^2)，因为，即使有序了，选择排序依然每次要进行固定的选择和比较。
             // 空间复杂度分析：O(1)
-            let select = (array) => {
-                for (let i = 0; i < array.length; i++) {
+            const select = (array) => {
+                let length = array.length;
+                for (let i = 0; i < length; i++) {
                     let min = i;
-                    for (var j = i+1; j < array.length; j++) {
+                    for (var j = i+1; j < length; j++) {
                         if (array[j]<array[min]) {
                             min = j;
                         }
@@ -74,9 +76,10 @@
             // 最坏情况：输入数组按降序排列。T(n) = O(n2)
             // 平均情况：T(n) = O(n2)
             // 空间复杂度：O(1)
-            let insert = (array) => {
+            const insert = (array) => {
+                let length = array.length;
                 console.time('插入');
-                for (let i = 0; i < array.length; i++) {
+                for (let i = 0; i < length; i++) {
                     let get = array[i];
                     let j = i - 1;
                     while (j>=0 && array[j]>get) {
@@ -94,13 +97,14 @@
             // 希尔
             // 时间复杂度 介于O(n)至O(n^2)之间，相关资料显示其具体复杂度为O(n^1.3)次方
             // 空间复杂度 O(1)
-            let shell = (array) => {
+            const shell = (array) => {
+                let length = array.length;
                 let h = 0;
-                while (h<=array.length) {
+                while (h<=length) {
                     h = h*3+1;
                 }
                 while (h>=1) {
-                    for (var i = 0; i < array.length; i++) {
+                    for (var i = 0; i < length; i++) {
                         let j = i-h;
                         let getShell = array[i];
                         while (j>=0 && array[j]>getShell) {
@@ -136,7 +140,7 @@
              * （此时：序列末尾的元素为已排序的最大值；由于交换了元素，当前位于根节点的堆并不一定满足大顶堆的性质）
              * c 重复a.b步骤，直至堆中只有1个元素为止
              */
-            let heapDown = (array, i, len) => {
+            const heapDown = (array, i, len) => {
                 let j = i*2+1;
                 while (j<len) {
                     if (j+1<len && array[j] > array[j+1]) {
@@ -153,14 +157,14 @@
                 }
             }
 
-            let buildHeap = (array, len) => {
+            const buildHeap = (array, len) => {
                 let i = 0;
                 for (i = len/2 - 1; i >= 0; i--) {//((n-1)*2)+1 = n/2-1
                     heapDown(array, i, len);
                 }
             }
 
-            let heap = (array) => {
+            const heap = (array) => {
                 let length = array.length;
                 buildHeap(array, length);
                 for (i = length - 1; i >= 0; i--) {
@@ -185,7 +189,7 @@
              * <3>.将两个排序好的子序列合并成一个最终的排序序列。
              *
              */
-            let mergeSort = (array) => {
+            const mergeSort = (array) => {
                 let length = array.length;
                 if (length<2) {
                     return array;
