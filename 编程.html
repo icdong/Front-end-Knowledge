@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	配合实现双向绑定
+	<input id="input"/>
+	<div id="value"></div>
+	
+	<script type="text/javascript">
+		// ---------------------------------------- 造轮子篇
+		// 实现instance of
+		// L instanceof R
+		function instance_of(L, R) {//L 表示左表达式，R 表示右表达式
+		    let O = R.prototype;// 取 R 的显式原型
+		    L = L.__proto__;    // 取 L 的隐式原型
+		    while (true) {
+		        if (L === null) //已经找到顶层
+		            return false;
+		        if (O === L)   //当 O 严格等于 L 时，返回 true
+		            return true;
+		        L = L.__proto__;  //继续向上一层原型链查找
+		    }
+		}
+
+		function _new(func) {
+			// 1、创建新对象
+			// 2、更改原型链
+			// 3、判断返回
+
+		    let target = {};
+		    target.__proto__ = func.prototype;
+			let res = func.call(target);
+		    if (res && typeof(res) === "object" || typeof(res) === "function") {
+		    	return res;
+		    }
+		    return target;
+		}
+
+		Function.prototype.call = function (context) {
+			// 1、判断
+			// 2、创建新属性
+			// 3、运行
+			// 4、删除
+			// 5、返回
+
+
+		    /** 如果第一个参数传入的是 null 或者是 undefined, 那么指向this指向 window/global */
+		    /** 如果第一个参数传入的不是null或者是undefined, 那么必须是一个对象 */
+		    if (!context) {
+		        //context为null或者是undefined
+		        context = typeof window === 'undefined' ? global : window;
+			}
+
+		    context.fn = this; //this指向的是当前的函数(Function的实例)
+
+		    let rest = [...arguments].slice(1);//获取除了this指向对象以外的参数, 空数组slice后返回的仍然是空数组
+		    let result = context.fn(...rest); //隐式绑定,当前函数的this指向了context.
+
+		    delete context.fn;
+		    return result;
+		}
+		//测试代码
+		// let foo = {
+		//     name: 'Selina'
+		// }
+		// let name = 'Chirs';
+		// function bar(job, age) {
+		//     console.log(this.name);
+		//     console.log(job, age);
+		// }
+		// bar.call(foo, 'programmer', 20);// Selina programmer 20
+		// bar.call(null, 'teacher', 25);
+		// 浏览器环境: Chirs teacher 25; node 环境: undefined teacher 25
+
+		Function.prototype.apply = function (context, rest) {
+			// 1、判断
+			// 2、创建
+			// 3、分情况运行
+			// 4、删除
+			// 5、返回
+
+		    if (!context) {
+		        //context为 null 或者是undefined时,设置默认值
+		        context = typeof window === 'undefined' ? global : window;
+		    }
+
+		    context.fn = this;
+
+		    let result;
+		    if(rest === undefined || rest === null) {
+		        //undefined 或者 是 null 不是 Iterator 对象，不能使用 ...
+		        result = context.fn(rest);
+		    } else if(typeof rest === 'object') {
+		        result = context.fn(...rest);
+		    }
+
+		    delete context.fn;
+		    return result;
+		}
+		// let foo = {
+		//     name: 'Selina'
+		// }
+		// let name = 'Chirs';
+		// function bar(job, age) {
+		//     console.log(this.name);
+		//     console.log(job, age);
+		// }
+		// bar.apply(foo, ['programmer', 20]);// Selina programmer 20
+		// bar.apply(null, ['teacher', 25]);
+		// 浏览器环境: Chirs programmer 20; node 环境: undefined teacher 25
+
+
+
+
+
+		// bind 和 call/apply 有一个很重要的区别，一个函数被 call/apply 的时候，
+		// 会直接调用，但是 bind 会创建一个新函数。当这个新函数被调用时，
+		// bind() 的第一个参数将作为它运行时的 this，
+		// 之后的一序列参数将会在传递的实参前传入作为它的参数。
+		
+		// 郑昊川版本（改编）
+	    Function.prototype.___bind = function (context) {
+			var _this = this
+			var args = [...arguments].slice(1)
+			return function () {
+				return _this.apply(context, [...args, ...arguments])
+			}
+		}
+		// var test = function () {
+		//   	console.log(this.name);
+		// }
+		// var test2 = test.___bind(obj);
+		// var obj = {
+		//   	name: 'obj'
+		// }
+		// var o = new test2();
+
+
+		// 刘小夕版本
+	    Function.prototype.bind = function(context) {
+		    if(typeof this !== "function"){
+		       throw new TypeError("not a function");
+		    }
+		    let self = this;
+		    let args = [...arguments].slice(1);
+		    function Fn() {};
+		    Fn.prototype = this.prototype;
+		    let bound = function() {
+		        //bind传递的参数和函数调用时传递的参数拼接
+		        let res = [...args, ...arguments]; 
+		        context = this instanceof Fn ? this : context || this;
+		        return self.apply(context, res);
+		    }
+		    //原型链
+		    bound.prototype = new Fn();
+		    return bound;
+		}
+
+		// 网上版本
+	    Function.prototype._bind = function () {
+	    	// 1、判断
+			// 2、绑定this
+			// 3、获取参数
+			// 4、返回
+	    	if(typeof this !== "function"){
+		       throw new TypeError("not a function");
+		    }
+	        let self = this;// 保存原函数
+	        let context = [].shift.call(arguments);// 保存需要绑定的this上下文
+	        let args = [].slice.call(arguments);// 剩余的参数转为数组
+	        return function () {// 返回一个新函数
+	            self.apply(context, [].concat.call(args, [].slice.call(arguments)));
+	        }
+	    }
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+	    // ------------------------------------------------- 常考篇
+	    
+
+	    // 防抖(debounce): n秒内函数只会执行一次，
+		// 如果n秒内高频事件再次被触发，则重新计算时间
+		// 假定在做公交车时，司机需等待最后一个人进入后再关门，
+		// 每次新进一个人，司机就会把计时器清零并重新开始计时，
+		// 重新等待 1 分钟再关门，如果后续 1 分钟内都没有乘客上车，
+		// 司机会认为乘客都上来了，将关门发车。
+		function debounce(fn, time) {
+			let timeout;
+			return () => {
+				if (timeout) {
+					clearTimeout(timeout)
+				}
+				timeout = setTimeout({
+					fn
+				}, time)
+			}
+		}
+
+		// 节流：在某段时间内，不管你触发了多少次回调，
+		// 都只认第一次，并在计时结束时给予响应。
+		// 公交车开车，只认第一个人上车后5分钟就开车
+		function throttle(fn, time) {
+			let preTime = 0;
+			return () => {
+				const remainTime = time - (Date.now() - preTime);
+				if (remainTime <= 0) {
+					fn();
+					preTime = Date.now();
+				}
+			}
+		}
+
+
+
+	    // 简单实现双向数据绑定mvvm
+		// 上面配合 html 代码
+		const data = {};
+		const input = document.getElementById('input');
+		Object.defineProperty(data, 'text', {
+			set(value) {
+				input.value = value;
+				this.value = value;
+			}
+		});
+		const div = document.getElementById('value');
+		input.onchange = function(e) {
+			data.text = e.target.value;
+			div.innerHTML = e.target.value;
+		}
+		
+
+		// 深拷贝
+		function deepClone(obj) { //递归拷贝
+		    if(obj === null) return null; //null 的情况
+		    if(obj instanceof RegExp) return new RegExp(obj);
+		    if(obj instanceof Date) return new Date(obj);
+		    if(typeof obj !== 'object') return obj;//如果不是复杂数据类型，直接返回
+		        
+		    /**
+		     * 如果obj是数组，那么 obj.constructor 是 [Function: Array]
+		     * 如果obj是对象，那么 obj.constructor 是 [Function: Object]
+		     */
+		    let t = new obj.constructor();
+		    for(let key in obj) {
+		        //如果 obj[key] 是复杂数据类型，递归
+		        t[key] = deepClone(obj[key]);
+		    }
+		    return t;
+		}
+
+
+		// 数据劫持
+		let  value = 0;
+		Object.defineProperty(window, 'a', {
+		    get: function() {
+		        return this.value += 1;
+		    }
+		});
+		console.log(a !== a) // true
+
+
+
+		// 函数柯里化
+		function curry(fn, args = []) {
+		    return function() {
+		        let rest = [...args, ...arguments];
+		        if (rest.length < fn.length) {
+		            return curry.call(this,fn,rest);
+		        } else {
+		            return fn.apply(this,rest);
+		        }
+		    }
+		}
+		//test
+		// function sum(a,b,c) {
+		//     return a+b+c;
+		// }
+		// let sumFn = curry(sum);
+		// console.log(sumFn(1)(2)(3)); //6
+		// console.log(sumFn(1)(2, 3)); //6
+
+		// 类的继承 - 分ES5、ES6两种
+		// 方式1 简单易懂，但是无法实现多继承，父类新增原型方法/原型属性，
+		// 子类都能访问到
+		function Super1() {}
+		function Sub1() {}
+		Sub1.prototype = new Super1();
+
+		// 方式2
+		// 可以实现多继承，但是只能继承父类的实例属性和方法，
+		// 不能继承原型属性/方法
+		function A(){}
+		function B(){
+			A.call(this);
+		}
+
+		// 方式3
+		// 可以继承实例属性/方法，也可以继承原型属性/方法，
+		// 但是示例了两个A的构造函数
+		function B(){}
+		function A(){}
+		B.prototype = new A();
+
+		function B(){
+			A.call(this);
+		}
+
+		class Super {
+			constructor(name, age){
+				this.name = name
+			}
+			say(something){
+				console.log(something)
+			}
+		}
+		class Sub extends Super{
+			constructor(name, age, power) {
+		 		super(name, age);
+				this.power = power
+			}
+			fly(height) {
+				console.log(height)
+			}
+		}
+
+
+
+		// 数组去重
+		function unique(arr) {
+		    if (!Array.isArray(arr)) {
+		        console.log('type error!')
+		        return
+		    }
+		    var array = [];//定义一个空的数组
+		    for (var i = 0; i < arr.length; i++) {
+		        if (array .indexOf(arr[i]) === -1) {//判断数组中是否有arr[i]这个元素
+		            array .push(arr[i])
+		        }
+		    }
+		    return array;
+		}
+
+
+		// 判断是否是回文
+		function run(input) {
+			// 1、字符串分隔成数组
+			// 2、反转数组中的元素
+			// 3、反转后的数组转化为字符串
+			if (typeof input !== 'string') return false;
+			return input.split('').reverse().join('') === input;
+		}
+
+
+		// 实现一个JSON.parse
+		var jsonStr = '{ "age": 20, "name": "jack" }';
+		var json = (new Function('return ' + jsonStr))();
+
+
+		// 实现一个JSON.stringify
+		function jsonStringify(obj) {
+		    let type = typeof obj;
+		    if (type !== "object") {
+		        if (/string|undefined|function/.test(type)) {
+		            obj = '"' + obj + '"';
+		        }
+		        return String(obj);
+		    } else {
+		        let json = []
+		        let arr = Array.isArray(obj)
+		        for (let k in obj) {
+		            let v = obj[k];
+		            let type = typeof v;
+		            if (/string|undefined|function/.test(type)) {
+		                v = '"' + v + '"';
+		            } else if (type === "object") {
+		                v = jsonStringify(v);
+		            }
+		            json.push((arr ? "" : '"' + k + '":') + String(v));
+		        }
+		        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}")
+		    }
+		}
+
+
+		
+
+		// 引用类型：object,arrary,date,RegExp(正则)，Function
+		// 引用类型是由多个值构成的对象，其实都是Object的实例。
+
+		// 基本数据类型是简单的数据段。
+		// String, Number, Boolean, Null, Undefined, Symbol, BigInt
+		// Number 类型范围 负 2^53-1 ~ 正2^53 -1
+		// BigInt()、Symbol() 不是构造函数  不能使用new
+
+		// 可以是字符串或者整数
+		// num1、num2可以是字符串或者整数
+		function numAdd(num1, num2) {
+			// body...
+			return BigInt(num1) + BigInt(num2);
+		}
+		console.log(numAdd('123', 321));
+
+
+
+
+
+	</script>
+</body>
+</html>

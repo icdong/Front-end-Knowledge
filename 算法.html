@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>前端排序算法实现</title>
+    </head>
+    <body>
+        <h3></h3>
+        <img src="">
+
+        <script type="text/javascript">
+
+            let arrayTest = [];
+            for (let i = 0; i < 10000; i++) {
+                arrayTest.push(Math.floor(Math.random()*1000 + 1));
+            }
+
+
+            let bubbleArray = [].concat(arrayTest);
+            let selectArray = [].concat(arrayTest);
+            let insertArray = [].concat(arrayTest);
+            let shellArray = [].concat(arrayTest);
+            let heapArray = [].concat(arrayTest);
+            let mergeArray = [].concat(arrayTest);
+
+
+            // 冒泡
+            // 时间复杂度：第一趟排序需要经过（n-1）次比较，第二次（n-2），。。。等差数列，最后忽略系数还是O(n^2)
+            // 空间复杂度：O(1)
+            const bubble = array => {
+                let length = array.length;
+                for (let i = 0; i < length; i++) {
+                    for (let j = 0; j < length-i; j++) {
+                        if (array[j]>array[j+1]) {
+                            let temp = array[j+1];
+                            array[j+1] = array[j];
+                            array[j] = temp;
+                        }
+                    }
+                }
+                // return array;
+            }
+            console.time('冒泡');
+            bubble(bubbleArray);
+            console.timeEnd('冒泡');
+            // console.log(bubble(bubbleArray));
+
+
+            // 选择
+            // 时间复杂度：选择排序在最好和最坏的情况下都是O(n^2)，因为，即使有序了，选择排序依然每次要进行固定的选择和比较。
+            // 空间复杂度分析：O(1)
+            const select = array => {
+                let length = array.length;
+                for (let i = 0; i < length; i++) {
+                    let min = i;
+                    for (var j = i+1; j < length; j++) {
+                        if (array[j]<array[min]) {
+                            min = j;
+                        }
+                    }
+                    if (min!=i) {
+                        let temp = array[min];
+                        array[min] = array[i];
+                        array[i] = temp;
+                    }
+                }
+                // return array;
+            }
+            console.time('选择');
+            select(selectArray);
+            console.timeEnd('选择');
+            // console.log(select(selectArray));
+
+            // 插入
+            // 时间复杂度：时间上，最好情况当序列已经是有序排列了，在这种情况下，需要进行的比较操作需(n-1)次即可，复杂度O(n)。最坏情况,序列与目标序列相反，那么此时需要进行的比较共有n(n-1)/2次，时间复杂度忽略系数，结果为O(n^2)。平均来说插入排序算法复杂度为O(n²)。
+            // 最佳情况：输入数组按升序排列。T(n) = O(n)
+            // 最坏情况：输入数组按降序排列。T(n) = O(n2)
+            // 平均情况：T(n) = O(n2)
+            // 空间复杂度：O(1)
+            const insert = array => {
+                let length = array.length;
+                console.time('插入');
+                for (let i = 0; i < length; i++) {
+                    let get = array[i];
+                    let j = i - 1;
+                    while (j>=0 && array[j]>get) {
+                        array[j+1] = array[j];
+                        j--;
+                    }
+                    array[j+1] = get;
+                }
+                console.timeEnd('插入');
+                // return array;
+            }
+            insert(selectArray);
+            // console.log(insert(insertArray));
+
+            // 希尔
+            // 时间复杂度 介于O(n)至O(n^2)之间，相关资料显示其具体复杂度为O(n^1.3)次方
+            // 空间复杂度 O(1)
+            const shell = array => {
+                let length = array.length;
+                let h = 0;
+                while (h<=length) {
+                    h = h*3+1;
+                }
+                while (h>=1) {
+                    for (var i = 0; i < length; i++) {
+                        let j = i-h;
+                        let getShell = array[i];
+                        while (j>=0 && array[j]>getShell) {
+                            array[j+h] = array[j];
+                            j=j-h;
+                        }
+                        array[j+h]  =getShell;
+                    }
+                    h = (h-1)/3;
+                }
+                // return array;
+            }
+            console.time('希尔');
+            shell(shellArray);
+            console.timeEnd('希尔');
+            // console.log(shell(shellArray));
+
+            // 堆排序
+            // 时间复杂度
+            // 最佳情况：T(n) = O(nlogn)
+            // 最差情况：T(n) = O(nlogn)
+            // 平均情况：T(n) = O(nlogn)
+            /**
+             * 利用堆 这种数据结构所设计的一种排序算法，也是选择排序的一种。
+             * a 可以利用数组的特点快速定位指定索引的元素
+             * b 堆分为大堆小堆 是完全二叉树
+             * 大堆 要求每个节点的值都不大于其父节点的值即a[parent]>=a[i]
+             * 在数组的非降序排序中，需要使用的就是大堆
+             * 大堆中最大值肯定是在 堆顶的
+             * 步骤：a 首先将序列构建称为大顶堆；
+             * （这样满足了大顶堆那条性质：位于根节点的元素一定是当前序列的最大值）
+             * b 取出当前大顶堆的根节点，将其与序列末尾元素进行交换；
+             * （此时：序列末尾的元素为已排序的最大值；由于交换了元素，当前位于根节点的堆并不一定满足大顶堆的性质）
+             * c 重复a.b步骤，直至堆中只有1个元素为止
+             */
+            const heapDown = (array, i, len) => {
+                let j = i*2+1;
+                while (j<len) {
+                    if (j+1<len && array[j] > array[j+1]) j++;
+                    if (array[i] < array[j]) break;
+                    let temp = array[j];
+                    array[j] = array[i];
+                    array[i] = temp;
+                    i = j;
+                    j = i*2 + 1;
+                }
+            }
+
+            const buildHeap = (array, len) => {
+                let i = 0;
+                for (i = len/2 - 1; i >= 0; i--) {//((n-1)*2)+1 = n/2-1
+                    heapDown(array, i, len);
+                }
+            }
+
+            const heap = array => {
+                let length = array.length;
+                buildHeap(array, length);
+                for (i = length - 1; i >= 0; i--) {
+                    let temp = array[0];
+                    array[0] = array[i];
+                    array[i] = temp;
+                    heapDown(array, 0, i);
+                }
+            }
+            console.time('堆排序');
+            heap(heapArray);
+            console.timeEnd('堆排序');
+
+
+            // 归并排序
+            /**
+             * 归并排序是一种稳定的排序方法。将已有序的子序列合并，得到完全有序的序列；
+             * 即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为2-路归并。
+             *
+             * <1>.把长度为n的输入序列分成两个长度为n/2的子序列；
+             * <2>.对这两个子序列分别采用归并排序；
+             * <3>.将两个排序好的子序列合并成一个最终的排序序列。
+             *
+             */
+            const mergeSort = array => {
+                let length = array.length;
+                if (length < 2) return array;
+
+                let middle = Math.floor(length/2),
+                    left = array.slice(0, middle),
+                    right = array.slice(middle);
+                return merge(mergeSort(left), mergeSort(right));
+            }
+
+            let merge = (left, right) => {
+                let result = [];
+                while (left.length && right.length) {
+                    if (left[0] <= right[0]) {
+                        result.push(left.shift());
+                    } else {
+                        result.push(right.shift());
+                    }
+                }
+
+                while (left.length) result.push(left.shift());
+                while (right.length) result.push(right.shift());
+
+                return result;
+            }
+
+            console.time('归并');
+            mergeSort(mergeArray);
+            console.timeEnd('归并');
+
+            // 快速排序
+        </script>
+    </body>
+</html>
