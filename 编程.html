@@ -247,6 +247,8 @@
 		    }
 		    return array;
 		}
+		Array.from(new Set(arr));
+		[...new Set(arr)];
 
 
 
@@ -398,31 +400,101 @@
 		// 6) class 内部无法重写类名
 		
 
-		// 方式1原型继承 简单易懂，但是无法实现多继承，
+		// 原型继承 简单易懂，但是无法实现多继承，
 		// 父类新增原型方法/原型属性，子类都能访问到
+		// 构造子类实例的时候，不能给父类传递参数。
+		// 实际上，是没有办法在不影响所有对象实例的情况下，给父类传递参数。
 		function Super1() {}
 		function Sub1() {}
 		Sub1.prototype = new Super1();
+		Sub1.prototype.constructor = Sub1
 
-		// 方式2借用构造函数
+		// 借用构造函数
 		// 可以实现多继承，但是只能继承父类的实例属性和方法，
 		// 不能继承原型属性/方法
-		function A(){}
-		function B(){
-			A.call(this);
+		function Super (name, colors) {
+			this.name = name
+			this.colors = colors
+		}
+		function Sub () {
+			// 继承了Super
+			Super.call(this, 'xyz', ['red'])
 		}
 
-		// 方式3方法挂载到父类的原型对象上去，实现方法复用，
+
+		// 组合继承（原型继承+构造函数继承）
+		// 方法挂载到父类的原型对象上去，实现方法复用，
 		// 然后子类通过原型链继承，就能调用这些方法
 		// 可以继承实例属性/方法，也可以继承原型属性/方法，
-		// 但是示例了两个A的构造函数
-		function B(){}
-		function A(){}
-		B.prototype = new A();
-
-		function B(){
-			A.call(this);
+		// 但是示例了两个A的构造函数；第一次是在创建子类原型的时候，
+		// 第二次是在子类构造函数内部
+		function Super (name) {
+			this.name = name
+			this.colors = ['red']
 		}
+		Super.prototype.getName = function () {
+			return this.name
+		}
+
+		function Sub (name, age) {
+			// 继承属性
+			// 第二次调用父类构造函数，Sub.prototype得到了name和colors，
+			// 并覆盖了第一次得到的属性
+			Super.call(this, name)
+			this.age = age
+		}
+		// 继承方法
+		// 第一次调用父类构造函数，Sub.prototype得到了内部属性name，colors
+		Sub.prototype = new Super('xyz')
+		Sub.prototype.constructor = Sub
+		// 子类自己的方法
+		Sub.prototype.getAge = function () {
+			return this.age
+		}
+
+
+		// 寄生组合式继承——————最优解
+		// 寄生组合式继承，解决了调用两次父类构造函数的问题
+		// 也是借用构造函数来继承不可共享的属性，
+		// 通过原型链的混成形式来继承方法和可共享的属性。
+		// 只不过把原型继承改成了寄生式继承。
+		// 使用寄生组合继承可以不必为了指定子类的原型而调用父类的构造函数，
+		// 所以只继承了父类的原型属性，而父类的实例属性是借用构造函数的方式来得到的。
+		// 高效率体现在只调用了一次Super构造函数，
+		// 并且因此避免了在Sub.prototype上创建不必要的、多余的属性。而且原型链不变
+		function Super (name) {
+			this.name = name
+			this.colors = ['red']
+		}
+		Super.prototype.getName = function () {
+			return this.name
+		}
+
+		function Sub (name, age) {
+			Super.call(this, name)
+			this.age = age
+		}
+
+		// 本质上，是对传入的对象进行了一次浅复制
+		if (!Object.create) {
+			Object.create = function (proto) {
+				function F() {}	// 临时的构造函数
+				F.prototype = proto	// 将传进来的参数作为这个构造函数的原型
+				return new F()	// 返回这个构造函数的新实例
+			}
+		}
+
+		Sub.prototype = Object.create(Super.prototype)
+		Sub.prototype.constructor = Sub
+		// test
+		// var instance1 = new Sub('xyz', 18)
+		// instance1.getName()	// xyz
+		// instance1.colors.push('white')
+		// instance1.colors	// ['red', 'white']
+
+		// var instance2 = new Sub('xyz2', 22)
+		// instance2.colors	// ['red']
+
 
 
 		// ES6 继承
