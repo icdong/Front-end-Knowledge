@@ -192,12 +192,12 @@
         // 这样才能then里面加上异步函数
         // 加上了catch
         function PromiseM(fn) {
-            var value = null;
-            var callbacks = [];
+            let value = null;
+            let callbacks = [];
             //加入状态 为了解决在Promise异步操作成功之后调用的
             // then注册的回调不会执行的问题
-            var state = 'pending';
-            var _this = this;
+            let state = 'pending';
+            let _this = this;
 
             //注册所有的回调函数
             this.then = function (fulfilled, rejected) {
@@ -211,13 +211,13 @@
                             return;
                         }
                         if (state == 'fulfilled') {
-                            var data = fulfilled(value);
+                            let data = fulfilled(value);
                             //为了能让两个promise连接起来
                             resolv(data);
                             return;
                         }
                         if (state == 'rejected') {
-                            var data = rejected(value);
+                            let data = rejected(value);
                             //为了能让两个promise连接起来
                             resolv(data);
                             return;
