@@ -2,14 +2,114 @@
 <html lang="en" dir="ltr">
     <head>
         <meta charset="utf-8">
-        <title>前端排序算法实现</title>
+        <title>前端排序、算法实现</title>
     </head>
     <body>
         <h3></h3>
         <img src="">
 
         <script type="text/javascript">
+            // 二叉树节点
+            function node(data, left, right) {
+                this.data = data
+                this.left = left
+                this.right = right
+                this.getData = () => this.data
+            }
 
+            // 二叉树
+            function BST() {
+                this.root = null
+                this.insert = insert
+            }
+            function insert(data) {
+                let node = new Node(data,null,null);
+                if(this.root == null){
+                    this.root = node;
+                }else{
+                    let current = this.root;
+                    while(true){
+                        if(current.data > data){
+                            if(current.left === null){
+                                current.left = node;
+                                break;
+                            }
+                            current = current.left;
+                        }else{
+                            if(current.right === null){
+                                current.right = node;
+                                break;
+                            }
+                            current = current.right;
+                        }
+                    }
+                }
+            }
+
+            // 前序遍历/先序遍历 根->左->右
+            let preOrder = function (node) {
+                if(node) {
+                    console.log(node.value);
+                    preOrder(node.left)
+                    preOrder(node.right)
+                }
+            }
+
+            // 中序遍历 左->根->右
+            let inOrder = function (node) {
+                if (node) {
+                    inOrder(node.left)
+                    console.log(node);
+                    inOrder(node.right)
+                }
+            }
+
+            // 后序遍历 左->右->根
+            let postOrder = function (node) {
+                if (node) {
+                    nextOrder(node.left)
+                    nextOrder(node.right)
+                    console.log(node.value);
+                }
+            }
+
+            // 二叉树查找最小值（其实就是最左边节点）
+            function getMin(bst) {
+                let current = bst.root
+                while (current.left !== null) {
+                    current = current.left
+                }
+                return current.data
+            }
+
+            // 二叉树查找最大值（其实就是最右边节点）
+            function getMax(bst) {
+                let current = bst.root
+                while (current.right !== null) {
+                    current = current.right
+                }
+                return current.data
+            }
+
+            // 二叉树查找特定值
+            function find(target, bst) {
+                let current = bst.root
+                while (current !== null) {
+                    if (target === current) {
+                        return true
+                    } else if (target > current.data) {
+                        current = current.right
+                    } else if (target < current.data) {
+                        current = current.left
+                    }
+                }
+                return true
+            }
+
+
+
+
+            // —————————————— 各种排序算法
             let arrayTest = [];
             for (let i = 0; i < 10000; i++) {
                 arrayTest.push(Math.floor(Math.random()*1000 + 1));
