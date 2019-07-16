@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>原生JS理论篇</title>
 </head>
 <body>
 	配合实现双向绑定
@@ -10,6 +10,40 @@
 	
 	<script type="text/javascript">
 		// ---------------------------------------- 造轮子篇
+		
+		
+		
+		
+		// 使用迭代的方式实现 flatten 函数
+		let arr = [1, 2, [3, 4, 5, [6, 7], 8], 9, 10, [11, [12, 13]]]
+		// 迭代实现
+		function flatten1(arr) {
+			let arrs =[...arr]
+			let newArr = [];
+			while (arrs.length){
+				let item = arrs.shift()
+				if(Array.isArray(item)){
+				arrs.unshift(...item)
+				}else {
+				newArr.push(item)
+				}
+			}
+			return newArr
+		}
+		// 递归实现
+		function flatten2(arr) {
+			let arrs = [];
+			arr.map(item => {
+				if(Array.isArray(item)){
+				arrs.push(... flatten(item))
+				} else {
+				arrs.push(item)
+				}
+			})
+			return arrs
+		}
+
+
 		// 实现instance of
 		// L instanceof R
 		function instance_of(L, R) {//L 表示左表达式，R 表示右表达式
@@ -168,7 +202,7 @@
 			// 2、绑定this
 			// 3、获取参数
 			// 4、返回
-	    	if(typeof this !== "function"){
+	    	if(typeof this !== "function") {
 		       throw new TypeError("not a function");
 		    }
 	        let self = this;// 保存原函数
@@ -345,14 +379,15 @@
 
 	    // ------------------------------------------------- 常考篇
 
-	    var arr = [ 1,5,1,7,5,9];
+	    var arr = [1,5,1,7,5,9];
    		Math.max(...arr)  // 9 
 
 	    // 详解地址https://www.cnblogs.com/vajoy/p/3703859.html
 		// 用内存指针的方式去理解
 		var a = {n: 1};
 		var b = a;
-		a.x = a = {n: 2};
+		a.x = a = {n: 2};// 从左到右执行
+
 
 		// console.log(a.x)
 		// console.log(b.x)
@@ -409,15 +444,13 @@
 		// 每次新进一个人，司机就会把计时器清零并重新开始计时，
 		// 重新等待 1 分钟再关门，如果后续 1 分钟内都没有乘客上车，
 		// 司机会认为乘客都上来了，将关门发车。
-		function debounce(fn, time) {
+		function debounce(func, time) {
 			let timeout;
 			return () => {
 				if (timeout) {
 					clearTimeout(timeout)
 				}
-				timeout = setTimeout({
-					fn
-				}, time)
+				timeout = setTimeout({func}, time)
 			}
 		}
 
@@ -520,7 +553,8 @@
 		
 		function curry(fn, args = []) {
 		    return function() {
-		        let rest = [...args, ...arguments];
+				let rest = [...args, ...arguments];
+				// fn.length形参个数
 		        if (rest.length < fn.length) {
 		            return curry.call(this,fn,rest);
 		        } else {

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>编程实操</title>
+</head>
+<body>
+    <script>
+        // 算法题之「两数之和」
+        function anwser (arr, target) {
+            let map = {}
+            for (let i = 0; i < arr.length; i++) {
+                map[arr[i]] = i
+            }
+            for (let i = 0; i < arr.length; i++) {
+                var d = target - arr[i]
+                if (map[d]) {
+                    return [i, map[d]]
+                }
+            }
+            return new Error('404 not found')
+        }
+
+
+
+
+        // 算法题「移动零」，给定一个数组 nums，
+        // 编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序
+        var arr = [1, 2, 3, 0, 0, 0, 4, 5, 0, 6]
+        for (var i = arr.length - 1; i > 0; i--) {
+            if (arr[i] === 0) {
+                arr.push(0)
+                arr.splice(i, 1)
+            }
+        }
+        console.log(arr)
+        // 思路：
+        // 先把数组中的0全部去掉
+        // 对比初始数组和去掉0后的数组的长度
+        // 长度相差多少就在数组末尾添加几个0
+        const result = (arr) => arr.filter(Boolean).concat([...Array(arr.length - arr.filter(Boolean).length).fill(0)])
+        result([0,1,0,3,0,12,0])    // [1, 3, 12, 0, 0, 0, 0]
+        // 首先，题意是要在原地修改数组，那么sort，concat之类的纯函数方法就是行不通的了，因为是返回新的数组，而不是在原地修改
+        // 其次，splice的时间复杂度是O(n)，那么使用splice的算法的时间复杂度是O(n2)，既然在写算法，那么就要寻求时间复杂度与空间复杂度最低的办法。
+        // 思路：双指针
+        // 设定一个慢指针一个快指针，快指针每次+1， 当慢指针的值不等于0的时候也往后移动，当慢指针等于0并且快指针不等于0的时候，交换快慢指针的值，慢指针再+1
+        function moveZero(arr) {
+            let i = 0
+            let j = 0
+            while (j < arr.length) {
+                if (arr[i] !== 0) {
+                    i++
+                } else if (arr[j] !== 0) {
+                    [arr[i], arr[j]] = [arr[j], arr[i]]
+                    i++
+                }
+                j++
+            }
+        }
+        // 时间复杂度O(n)，n是数组长度，空间复杂度O(1)
+
+
+
+        // 旋转数组算法题
+        // 用splice就好了嘛
+        // 就不用考虑步数超出数组长度
+        // 一行代码解决问题
+        function rotateArr(arr, k) { 
+            return [...arr.splice(k+1), ...arr];
+        }
+
+
+        // 实现一个字符串匹配算法，从长度为 n 的字符串 S 中，
+        // 查找是否存在字符串 T，T 的长度是 m，若存在返回所在位置。
+        // 方法一：
+        const find = (S, T) => S.search(T)
+        // 方法二：
+        const find = (S, T) => {
+        const matched = S.match(T) 
+            return matched ? matched.index : -1 
+        }
+        // 方法三：
+        const find = (S,T) => S.indexOf(T)
+        // 方法四：
+        let findIndex = (S, T) => {
+            let index = -1
+            if (!T.length || T.length > S.length) return index // T 为空字符串或 T 的长度大于 S 均直接返回-1
+            const arr = S.split(T)
+            if (arr.length > 1) index = arr[0].length
+            return index
+        }
+        findIndex('FishPlusOrange', 'Plus') // 4
+        findIndex('FishPlusOrange', 'sulP') // -1
+
+        
+        // 例如 ’AbC' 变成 'aBc'
+        function processString (s) {
+            var arr = s.split('');
+            var new_arr = arr.map((item) => {
+                return item === item.toUpperCase() ? item.toLowerCase() : item.toUpperCase();
+            });
+            return new_arr.join('');
+        }
+        console.log(processString('AbC'));
+
+
+        // 如下：{1:222, 2:123, 5:888}，
+        // 请把数据处理为如下结构：[222, 123, null, null, 888, null, null, null, null, null, null, null]。
+        let data = {1:222, 2:123, 5:888};
+        let arr = Array.from({length:12}).fill(null);
+        keys(data).forEach(it=>arr[it-1] = data[it]);
+        console.log(arr);
+
+
+
+        // 输出以下代码执行的结果并解释为什么
+        var obj = {
+            '2': 3,
+            '3': 4,
+            'length': 2,
+            'splice': Array.prototype.splice,
+            'push': Array.prototype.push
+        }
+        obj.push(1)
+        obj.push(2)
+        console.log(obj)// [,,1,2], length为4
+        // 伪数组（ArrayLike）
+
+
+
+
+
+
+
+    </script>
+</body>
+</html>
