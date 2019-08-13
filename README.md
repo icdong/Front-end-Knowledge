@@ -3,7 +3,7 @@
 	    /** 
 	     * 1、继承
 	     * 2、防抖/节流
-	     * 3、bind/call/apply
+	     * 3、bind/call/apply、new、instanceOf、绑定事件
 	     * 4、回文
 	     * 5、去重
 	     * 6、函数式编程
