@@ -1,1 +1,45 @@
 react-hooks思想和初衷，也是把组件，颗粒化，单元化，形成独立的渲染环境，减少渲染次数，优化性能。
+
+
+var chart = Highcharts.chart('container', {
+	chart: {
+		type: 'column'
+	},
+	title: {
+		text: '百分比堆叠柱形图'
+	},
+	xAxis: {
+		categories: ['苹果', '橘子', '梨', '葡萄', '香蕉']
+	},
+	yAxis: {
+		min: 0,
+		title: {
+			text: '水果消费总量'
+		}
+	},
+	tooltip: {
+		pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b>' +
+		'({point.percentage:.0f}%)<br/>', 
+		//:.0f 表示保留 0 位小数，详见教程：https://www.hcharts.cn/docs/basic-labels-string-formatting
+		shared: true
+	},
+	plotOptions: {
+		borderWidth: 1,    
+		column: {
+			stacking: 'percent'
+		}
+	},
+	series: [{
+		name: '小张',
+		data: [5, 3, 4, 7, 2]
+	}, {
+		name: '小彭',
+		data: [2, 2, 3, 2, 1]
+	},{
+		name: '小A',
+		data: [2, 2, 3, 2, 1]
+	}, {
+		name: '小潘',
+		data: [3, 4, 4, 2, 5]
+	}]
+});
