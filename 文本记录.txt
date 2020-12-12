@@ -1,45 +1,34 @@
 react-hooks思想和初衷，也是把组件，颗粒化，单元化，形成独立的渲染环境，减少渲染次数，优化性能。
 
 
-var chart = Highcharts.chart('container', {
-	chart: {
-		type: 'column'
-	},
-	title: {
-		text: '百分比堆叠柱形图'
-	},
-	xAxis: {
-		categories: ['苹果', '橘子', '梨', '葡萄', '香蕉']
-	},
-	yAxis: {
-		min: 0,
-		title: {
-			text: '水果消费总量'
-		}
-	},
-	tooltip: {
-		pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b>' +
-		'({point.percentage:.0f}%)<br/>', 
-		//:.0f 表示保留 0 位小数，详见教程：https://www.hcharts.cn/docs/basic-labels-string-formatting
-		shared: true
-	},
-	plotOptions: {
-		borderWidth: 1,    
-		column: {
-			stacking: 'percent'
-		}
-	},
-	series: [{
-		name: '小张',
-		data: [5, 3, 4, 7, 2]
-	}, {
-		name: '小彭',
-		data: [2, 2, 3, 2, 1]
-	},{
-		name: '小A',
-		data: [2, 2, 3, 2, 1]
-	}, {
-		name: '小潘',
-		data: [3, 4, 4, 2, 5]
-	}]
-});
+经过上述我们大致知道了diff算法的流程
+1 从头对比找到有相同的节点 patch ，发现不同，立即跳出。
+
+2如果第一步没有patch完，立即，从后往前开始patch ,如果发现不同立即跳出循环。
+
+3如果新的节点大于老的节点数 ，对于剩下的节点全部以新的vnode处理（ 这种情况说明已经patch完相同的vnode ）。
+
+4 对于老的节点大于新的节点的情况 ， 对于超出的节点全部卸载 （ 这种情况说明已经patch完相同的vnode ）。
+
+5不确定的元素（ 这种情况说明没有patch完相同的vnode ） 与 3 ，4对立关系。
+
+1 把没有比较过的新的vnode节点,通过map保存
+记录已经patch的新节点的数量 patched
+没有经过 path 新的节点的数量 toBePatched
+建立一个数组newIndexToOldIndexMap，每个子元素都是[ 0, 0, 0, 0, 0, 0, ] 里面的数字记录老节点的索引 ，数组索引就是新节点的索引
+开始遍历老节点
+① 如果 toBePatched新的节点数量为0 ，那么统一卸载老的节点
+② 如果,老节点的key存在 ，通过key找到对应的index
+③ 如果,老节点的key不存在
+1 遍历剩下的所有新节点
+2 如果找到与当前老节点对应的新节点那么 ，将新节点的索引，赋值给newIndex
+④ 没有找到与老节点对应的新节点，卸载当前老节点。
+⑤ 如果找到与老节点对应的新节点，把老节点的索引，记录在存放新节点的数组中，
+1 如果节点发生移动 记录已经移动了
+2 patch新老节点 找到新的节点进行patch节点
+遍历结束
+
+如果发生移动
+① 根据 newIndexToOldIndexMap 新老节点索引列表找到最长稳定序列
+② 对于 newIndexToOldIndexMap -item =0 证明不存在老节点 ，从新形成新的vnode
+③ 对于发生移动的节点进行移动处理。
