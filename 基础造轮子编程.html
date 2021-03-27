@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>原生JS理论篇</title>
+</head>
+<body>
+	配合实现双向绑定
+	<input id="input"/>
+	<div id="value"></div>
+	
+	<script type="text/javascript">
+		// ---------------------------------------- 造轮子篇
+		
+		
+		
+		
+		// 使用迭代的方式实现 flatten 函数
+		let arr = [1, 2, [3, 4, 5, [6, 7], 8], 9, 10, [11, [12, 13]]]
+		// 迭代实现
+		function flatten1(arr) {
+			let arrs = [...arr]
+			let newArr = []; 
+			while (arrs.length){
+				let item = arrs.shift()
+				if(Array.isArray(item)){
+					arrs.unshift(...item)
+				}else {
+					newArr.push(item)
+				}
+			}
+			return newArr
+		}
+		// 递归实现
+		function flatten2(arr) {
+			let arrs = [];
+			arr.map(item => {
+				if(Array.isArray(item)){
+					arrs.push(... flatten(item))
+				} else {
+					arrs.push(item)
+				}
+			})
+			return arrs
+		}
+
+
+		// 实现instance of
+		// L instanceof R
+		function instance_of(L, R) {//L 表示左表达式，R 表示右表达式
+		    let O = R.prototype;// 取 R 的显式原型
+		    L = L.__proto__;    // 取 L 的隐式原型
+		    while (true) {
+		        if (L === null) //已经找到顶层
+		            return false;
+		        if (O === L)   //当 O 严格等于 L 时，返回 true
+		            return true;
+		        L = L.__proto__;  //继续向上一层原型链查找
+		    }
+		}
+
+
+
+		function _new(func) {
+			// 1、创建新对象
+			// 2、更改原型链
+			// 3、判断返回
+
+		    let target = {};
+		    target.__proto__ = func.prototype;
+			let res = func.call(target);
+		    if (res && typeof(res) === "object" || typeof(res) === "function") {
+		    	return res;
+		    }
+		    return target;
+		}
+
+
+		// call比apply的性能要好，平常可以多用call
+		// call传入参数的格式正是内部所需要的格式
+		Function.prototype.call = function (context) {
+			// 1、判断
+			// 2、创建新属性
+			// 3、运行
+			// 4、删除
+			// 5、返回
+
+
+		    /** 如果第一个参数传入的是 null 或者是 undefined, 那么指向this指向 window/global */
+		    /** 如果第一个参数传入的不是 null 或者是 undefined, 那么必须是一个对象 */
+		    if (!context) {
+		        //context为null或者是undefined
+		        context = typeof window === 'undefined' ? global : window;
+			}
+
+		    context.fn = this; //this指向的是当前的函数(Function的实例)
+
+		    let rest = [...arguments].slice(1);//获取除了this指向对象以外的参数, 空数组slice后返回的仍然是空数组
+		    let result = context.fn(...rest); //隐式绑定,当前函数的this指向了context.
+
+		    delete context.fn;
+		    return result;
+		}
+		//测试代码
+		// let foo = {
+		//     name: 'Selina'
+		// }
+		// let name = 'Chirs';
+		// function bar(job, age) {
+		//     console.log(this.name);
+		//     console.log(job, age);
+		// }
+		// bar.call(foo, 'programmer', 20);// Selina programmer 20
+		// bar.call(null, 'teacher', 25);
+		// 浏览器环境: Chirs teacher 25; node 环境: undefined teacher 25
+
+
+
+		Function.prototype.apply = function (context, rest) {
+			// 1、判断
+			// 2、创建
+			// 3、分情况运行
+			// 4、删除
+			// 5、返回
+
+		    if (!context) {
+		        //context为 null 或者是undefined时,设置默认值
+		        context = typeof window === 'undefined' ? global : window;
+		    }
+
+		    context.fn = this;
+
+		    let result;
+		    if(rest === undefined || rest === null) {
+		        //undefined 或者 是 null 不是 Iterator 对象，不能使用 ...
+		        result = context.fn(rest);
+		    } else if(typeof rest === 'object') {
+		        result = context.fn(...rest);
+		    }
+
+		    delete context.fn;
+		    return result;
+		}
+		// let foo = {
+		//     name: 'Selina'
+		// }
+		// let name = 'Chirs';
+		// function bar(job, age) {
+		//     console.log(this.name);
+		//     console.log(job, age);
+		// }
+		// bar.apply(foo, ['programmer', 20]);// Selina programmer 20
+		// bar.apply(null, ['teacher', 25]);
+		// 浏览器环境: Chirs programmer 20; node 环境: undefined teacher 25
+
+
+
+		// bind 和 call/apply 有一个很重要的区别，一个函数被 call/apply 的时候，
+		// 会直接调用，但是 bind 会创建一个新函数。当这个新函数被调用时，
+		// bind() 的第一个参数将作为它运行时的 this，
+		// 之后的一序列参数将会在传递的实参前传入作为它的参数。
+		
+		// 郑昊川版本（改编）
+	    Function.prototype.___bind = function (context) {
+			let _this = this
+			let args = [...arguments].slice(1)
+			return function () {
+				return _this.apply(context, [...args, ...arguments])
+			}
+		}
+		// let test = function () {
+		//   	console.log(this.name);
+		// }
+		// let test2 = test.___bind(obj);
+		// let obj = {
+		//   	name: 'obj'
+		// }
+		// let o = new test2();
+
+		// 刘小夕版本
+	    Function.prototype.bind = function(context) {
+		    if (typeof this !== "function") {
+		       throw new TypeError("not a function");
+		    }
+		    let self = this;
+		    let args = [...arguments].slice(1);
+		    function Fn() {};
+		    Fn.prototype = this.prototype;
+		    let bound = function() {
+		        //bind传递的参数和函数调用时传递的参数拼接
+		        let res = [...args, ...arguments]; 
+		        context = this instanceof Fn ? this : context || this;
+		        return self.apply(context, res);
+		    }
+		    //原型链
+		    bound.prototype = new Fn();
+		    return bound;
+		}
+
+		// 网上版本
+	    Function.prototype._bind = function () {
+	    	// 1、判断
+			// 2、绑定this
+			// 3、获取参数
+			// 4、返回
+	    	if(typeof this !== "function") {
+		       throw new TypeError("not a function");
+		    }
+	        let self = this;// 保存原函数
+	        let context = [].shift.call(arguments);// 保存需要绑定的this上下文
+	        let args = [].slice.call(arguments);// 剩余的参数转为数组
+	        return function () {// 返回一个新函数
+	            self.apply(context, [].concat.call(args, [].slice.call(arguments)));
+	        }
+	    }
+
+       	// 简易版本的promise 
+        // 第一步： 列出三大块  this.then   resolve/reject   fn(resolve,reject)
+        // 第二步： this.then负责注册所有的函数
+        // 	resolve/reject负责执行所有的函数 
+        // 第三步： 在resolve/reject里面要加上setTimeout
+        // 	防止还没进行then注册 就直接执行resolve了
+        // 第四步： resolve/reject里面要返回this  这样就可以链式调用了
+        // 第五步： 三个状态的管理 pending fulfilled rejected
+     
+        // promise的链式调用 在then里面return一个promise
+        // 这样才能then里面加上异步函数
+        // 加上了catch
+        function PromiseM(fn) {
+            let value = null;
+            let callbacks = [];
+            //加入状态 为了解决在Promise异步操作成功之后调用的
+            // then注册的回调不会执行的问题
+            let state = 'pending';
+            let _this = this;
+
+            //注册所有的回调函数
+            this.then = function (fulfilled, rejected) {
+                //如果想链式promise 那就要在这边return一个new Promise
+                return new PromiseM(function (resolv, rejec) {
+                    //异常处理
+                    try {
+                        if (state == 'pending') {
+                            callbacks.push(fulfilled);
+                            //实现链式调用
+                            return;
+                        }
+                        if (state == 'fulfilled') {
+                            let data = fulfilled(value);
+                            //为了能让两个promise连接起来
+                            resolv(data);
+                            return;
+                        }
+                        if (state == 'rejected') {
+                            let data = rejected(value);
+                            //为了能让两个promise连接起来
+                            resolv(data);
+                            return;
+                        }
+                    } catch (e) {
+                        _this.catch(e);
+                    }
+                });
+            }
+
+            //执行所有的回调函数
+            function resolve(valueNew) {
+                value = valueNew;
+                state = 'fulfilled';
+                execute();
+            }
+
+            //执行所有的回调函数
+            function reject(valueNew) {
+                value = valueNew;
+                state = 'rejected';
+                execute();
+            }
+
+            function execute() {
+                //加入延时机制 防止promise里面有同步函数 导致resolve先执行 then还没注册上函数
+                setTimeout(function () {
+                    callbacks.forEach(function (cb) {
+                        value = cb(value);
+                    });
+                }, 0);
+            }
+            this.catch = function (e) {
+                console.log(JSON.stringify(e));
+            }
+            //经典 实现异步回调
+            fn(resolve, reject);
+        }
+
+
+
+
+        // 简单实现async/await中的async函数
+		// async 函数的实现原理，就是将 Generator 函数和自动执行器，
+		// 包装在一个函数里
+		function spawn(genF) {
+		    return new Promise(function(resolve, reject) {
+		        const gen = genF();
+		        function step(nextF) {
+		            let next;
+		            try {
+		                next = nextF();
+		            } catch (e) {
+		                return reject(e);
+		            }
+		            if (next.done) {
+		                return resolve(next.value);
+		            }
+		            Promise.resolve(next.value).then(
+		                function(v) {
+		                    step(function() {
+		                        return gen.next(v);
+		                    });
+		                },
+		                function(e) {
+		                    step(function() {
+		                        return gen.throw(e);
+		                    });
+		                }
+		            );
+		        }
+		        step(function() {
+		            return gen.next(undefined);
+		        });
+		    });
+		}
+
+
+
+
+        // 实现一个JSON.parse
+		// Function 有动态编译js的功能
+		let jsonStr = '{ "age": 20, "name": "jack" }';
+		let json = (new Function('return ' + jsonStr))();
+
+
+		// 实现一个JSON.stringify
+		function jsonStringify(obj) {
+		    let type = typeof obj;
+		    if (type !== "object") {
+		        if (/string|undefined|function/.test(type)) {
+		            obj = '"' + obj + '"';
+		        }
+		        return String(obj);
+		    } else {
+		        let json = []
+		        let arr = Array.isArray(obj)
+		        for (let k in obj) {
+		            let v = obj[k];
+		            let type = typeof v;
+		            if (/string|undefined|function/.test(type)) {
+		                v = '"' + v + '"';
+		            } else if (type === "object") {
+		                v = jsonStringify(v);
+		            }
+		            json.push((arr ? "" : '"' + k + '":') + String(v));
+		        }
+		        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}")
+		    }
+		}
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+	    // ------------------------------------------------- 常考篇
+
+	    var arr = [1,5,1,7,5,9];
+   		Math.max(...arr)  // 9 
+
+	    // 详解地址https://www.cnblogs.com/vajoy/p/3703859.html
+		// 用内存指针的方式去理解
+		var a = {n: 1};
+		var b = a;
+		a.x = a = {n: 2};// 从左到右执行
+
+
+		// console.log(a.x)
+		// console.log(b.x)
+		console.log(a)
+		console.log(b)
+	    
+	    // 将数组扁平化并去除其中重复数据，
+	    // 最终得到一个升序且不重复的数组
+		let arr = [[1, 2, 2,2], [3, 4, 123, 15, 5, 5], [6, 7, 8, 9, [11, 12, [12, 13, [14] ] ] ], 10]
+		// 扁平化
+		let flatArr = arr.flat(4)
+		// 去重
+		let disArr = [...new Set(flatArr)]
+		// 排序
+		// 返回值大于0 即a-b > 0 ， a 和 b 交换位置
+		// 返回值小于0 即a-b < 0 ， a 和 b 位置不变
+		// 返回值等于0 即a-b = 0 ， a 和 b 位置不变
+		let result = disArr.sort(function(a, b) {
+		    return a - b
+		})
+
+		console.log(result)
+		console.log([...new Set(arr.flat(4))].sort(function(a, b) {return a - b}))
+
+		// arr.flat(depth) 方法会按照一个可指定的深度递归遍历数组，
+		// 并将所有元素与遍历到的子数组中的元素合并为一个新数组返回。
+		// 使用 Infinity 作为深度，展开任意深度的嵌套数组
+
+
+
+		// 数组去重
+		function unique(arr) {
+		    if (!Array.isArray(arr)) {
+		        console.log('type error!')
+		        return
+		    }
+		    let array = [];//定义一个空的数组
+		    for (let i = 0; i < arr.length; i++) {
+		        //判断数组中是否有arr[i]这个元素
+		        if (array.indexOf(arr[i]) === -1) {
+		            array.push(arr[i])
+		        }
+		    }
+		    return array;
+		}
+		Array.from(new Set(arr));
+		[...new Set(arr)];
+
+
+
+	    // 防抖(debounce): n秒内函数只会执行一次，
+		// 如果n秒内高频事件再次被触发，则重新计算时间
+		// 假定在做公交车时，司机需等待最后一个人进入后再关门，
+		// 每次新进一个人，司机就会把计时器清零并重新开始计时，
+		// 重新等待 1 分钟再关门，如果后续 1 分钟内都没有乘客上车，
+		// 司机会认为乘客都上来了，将关门发车。
+		function debounce(func, time) {
+			let timeout;
+			return () => {
+				if (timeout) {
+					clearTimeout(timeout)
+				}
+				timeout = setTimeout({func}, time)
+			}
+		}
+
+		// 节流：在某段时间内，不管你触发了多少次回调，
+		// 都只认第一次，并在计时结束时给予响应。
+		// 公交车开车，只认第一个人上车后5分钟就开车
+		function throttle(fn, time) {
+			let preTime = 0;
+			return () => {
+				const remainTime = time - (Date.now() - preTime);
+				if (remainTime <= 0) {
+					fn();
+					preTime = Date.now();
+				}
+			}
+		}
+
+
+
+	    // 简单实现双向数据绑定mvvm
+		// 上面配合 html 代码
+		const data = {};
+		const input = document.getElementById('input');
+		Object.defineProperty(data, 'text', {
+			set(value) {
+				// input.value = value;
+				this.value = value;
+			}
+		});
+		const div = document.getElementById('value');
+		input.onchange = function(e) {
+			data.text = e.target.value;
+			div.innerHTML = e.target.value;
+		}
+		
+
+
+		// 深拷贝
+		function deepClone(obj) { //递归拷贝
+		    if(obj === null) return null; //null 的情况
+		    if(obj instanceof RegExp) return new RegExp(obj);
+		    if(obj instanceof Date) return new Date(obj);
+		    if(typeof obj !== 'object') return obj;//如果不是复杂数据类型，直接返回
+		        
+		    /**
+		     * 如果obj是数组，那么 obj.constructor 是 [Function: Array]
+		     * 如果obj是对象，那么 obj.constructor 是 [Function: Object]
+		     */
+		    let t = new obj.constructor();
+		    for(let key in obj) {
+		        //如果 obj[key] 是复杂数据类型，递归
+		        t[key] = deepClone(obj[key]);
+		    }
+		    return t;
+		}
+
+
+
+		// 数据劫持
+		var a = [1,2,3];
+		a.join = a.shift;
+		if(a == 1 && a == 2 && a == 3) {
+			console.log(1);
+		}
+
+		// 使用 Symbol
+		let a = {
+		    [Symbol.toPrimitive]: (i => () => ++i) (0)
+		};
+		if(a == 1 && a == 2 && a == 3) {
+		  	console.log(1);
+		}
+
+		// 使用 defineProperty
+		let  value = 0;
+		Object.defineProperty(window, 'a', {
+		    get: function() {
+		        return this.value += 1;
+		    }
+		});
+		console.log(a !== a) // true
+
+
+
+		// 函数柯里化
+		// 函数柯里化是把接受多个参数的函数变换成接受一个单一参数
+		// （最初函数的第一个参数）的函数，
+		// 并且返回接受余下的参数而且返回结果的新函数的技术。
+		
+		
+		function sum(a) {
+		    return function(b) {
+		        return function(c) {
+		            return a+b+c;
+		        }
+		    }
+		}
+		// console.log(sum(1)(2)(3)); // 6
+
+		
+		function curry(fn, args = []) {
+		    return function() {
+				let rest = [...args, ...arguments];
+				// fn.length形参个数
+		        if (rest.length < fn.length) {
+		            return curry.call(this, fn, rest);
+		        } else {
+		            return fn.apply(this,rest);
+		        }
+		    }
+		}
+		//test
+		// function sum(a,b,c) {
+		//     return a+b+c;
+		// }
+		// let sumFn = curry(sum);
+		// console.log(sumFn(1)(2)(3)); //6
+		// console.log(sumFn(1)(2, 3)); //6
+
+
+		
+
+		// 类的继承 - 分ES5、ES6两种
+		// ES5/ES6 的继承除了写法以外还有什么区别？
+		// 1) class 声明会提升，但不会初始化赋值。Foo 进入暂时性死区，
+		// 类似于 let、const 声明变量。
+		// 2) class 声明内部会启用严格模式。
+		// 3) class的所有方法（静态方法和实例方法）都是不可枚举的。
+		// 4) class 的所有方法（包括静态方法和实例方法）都没有原型对象 prototype，
+		// 所以也没有[[construct]]，不能使用 new 来调用
+		// 5) 必须使用 new 调用 class
+		// 6) class 内部无法重写类名
+		
+
+		// 原型继承 简单易懂，但是无法实现多继承，
+		// 父类新增原型方法/原型属性，子类都能访问到
+		// 构造子类实例的时候，不能给父类传递参数。
+		// 实际上，是没有办法在不影响所有对象实例的情况下，给父类传递参数。
+		function Super1() {}
+		function Sub1() {}
+		Sub1.prototype = new Super1();
+		Sub1.prototype.constructor = Sub1
+
+		// 借用构造函数
+		// 可以实现多继承，但是只能继承父类的实例属性和方法，
+		// 不能继承原型属性/方法
+		function Super (name, colors) {
+			this.name = name
+			this.colors = colors
+		}
+		function Sub () {
+			// 继承了Super
+			Super.call(this, 'xyz', ['red'])
+		}
+
+
+		// 组合继承（原型继承+构造函数继承）
+		// 方法挂载到父类的原型对象上去，实现方法复用，
+		// 然后子类通过原型链继承，就能调用这些方法
+		// 可以继承实例属性/方法，也可以继承原型属性/方法，
+		// 但是示例了两个A的构造函数；第一次是在创建子类原型的时候，
+		// 第二次是在子类构造函数内部
+		function Super (name) {
+			this.name = name
+			this.colors = ['red']
+		}
+		Super.prototype.getName = function () {
+			return this.name
+		}
+
+		function Sub (name, age) {
+			// 继承属性
+			// 第二次调用父类构造函数，Sub.prototype得到了name和colors，
+			// 并覆盖了第一次得到的属性
+			Super.call(this, name)
+			this.age = age
+		}
+		// 继承方法
+		// 第一次调用父类构造函数，Sub.prototype得到了内部属性name，colors
+		Sub.prototype = new Super('xyz')
+		Sub.prototype.constructor = Sub
+		// 子类自己的方法
+		Sub.prototype.getAge = function () {
+			return this.age
+		}
+
+
+		// 寄生组合式继承——————最优解
+		// 寄生组合式继承，解决了调用两次父类构造函数的问题
+		// 也是借用构造函数来继承不可共享的属性，
+		// 通过原型链的混成形式来继承方法和可共享的属性。
+		// 只不过把原型继承改成了寄生式继承。
+		// 使用寄生组合继承可以不必为了指定子类的原型而调用父类的构造函数，
+		// 所以只继承了父类的原型属性，而父类的实例属性是借用构造函数的方式来得到的。
+		// 高效率体现在只调用了一次Super构造函数，
+		// 并且因此避免了在Sub.prototype上创建不必要的、多余的属性。而且原型链不变
+		function Super (name) {
+			this.name = name
+			this.colors = ['red']
+		}
+		Super.prototype.getName = function () {
+			return this.name
+		}
+
+		function Sub (name, age) {
+			Super.call(this, name)
+			this.age = age
+		}
+
+		// 本质上，是对传入的对象进行了一次浅复制
+		if (!Object.create) {
+			Object.create = function (proto) {
+				function F() {}	// 临时的构造函数
+				F.prototype = proto	// 将传进来的参数作为这个构造函数的原型
+				return new F()	// 返回这个构造函数的新实例
+			}
+		}
+
+		Sub.prototype = Object.create(Super.prototype)
+		Sub.prototype.constructor = Sub
+		// test
+		// var instance1 = new Sub('xyz', 18)
+		// instance1.getName()	// xyz
+		// instance1.colors.push('white')
+		// instance1.colors	// ['red', 'white']
+
+		// var instance2 = new Sub('xyz2', 22)
+		// instance2.colors	// ['red']
+
+
+
+		// ES6 继承
+		class Super {
+			constructor(name, age){
+				this.name = name
+			}
+			say(something){
+				console.log(something)
+			}
+		}
+		class Sub extends Super{
+			constructor(name, age, power) {
+		 		super(name, age);
+				this.power = power
+			}
+			fly(height) {
+				console.log(height)
+			}
+		}
+
+		// js继承之组合继承（结合原型链继承 和 借用构造函数继承）
+
+		// 判断是否是回文
+		function run(input) {
+			// 1、字符串分隔成数组
+			// 2、反转数组中的元素
+			// 3、反转后的数组转化为字符串
+			if (typeof input !== 'string') return false;
+			return input.split('').reverse().join('') === input;
+		}
+
+
+		
+
+
+		
+
+		// 引用类型：object,arrary,date,RegExp(正则)，Function
+		// 引用类型是由多个值构成的对象，其实都是Object的实例。
+
+		// 基本数据类型是简单的数据段。
+		// String, Number, Boolean, Null, Undefined, Symbol, BigInt
+		// Number 类型范围 负 2^53-1 ~ 正2^53 -1
+		// BigInt()、Symbol() 不是构造函数  不能使用new
+
+		// 可以是字符串或者整数
+		// num1、num2可以是字符串或者整数
+		function numAdd(num1, num2) {
+			// body...
+			return BigInt(num1) + BigInt(num2);
+		}
+		console.log(numAdd('123', 321));
+
+		// 实现超出整数存储范围的两个大整数相加function add(a,b)。
+		// 注意a和b以及函数的返回值都是字符串。
+		function add (a, b) {
+		    let lenA = a.length,
+		        lenB = b.length,
+		        len = lenA > lenB ? lenA : lenB;
+		    // 先补齐位数一致
+		    if(lenA > lenB) {
+		        for(let i = 0; i < lenA - lenB; i++) {
+		            b = '0' + b;
+		        }
+		    } else {
+		        for(let i = 0; i < lenB - lenA; i++) {
+		            a = '0' + a;
+		        }
+		    }
+		    let arrA = a.split('').reverse(),
+		        arrB = b.split('').reverse(),
+		        arr = [],
+		        carryAdd = 0;
+		    for(let i = 0; i < len; i++) {
+		        let temp = Number(arrA[i]) + Number(arrB[i]) + carryAdd;
+		        arr[i] = temp > 9 ? temp - 10 : temp;
+		        carryAdd = temp >= 10 ? 1 : 0;
+		    }
+		    if(carryAdd === 1) {
+		        arr[len] = 1;
+		    }
+		    return arr.reverse().join('');
+		}
+
+
+
+
+	</script>
+</body>
+</html>
