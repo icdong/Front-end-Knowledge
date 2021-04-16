@@ -7,7 +7,25 @@
     <title>编程实操</title>
 </head>
 <body>
+
+    <div id="box"></div>
+
     <script>
+
+        let box = document.getElementById("box");
+        let fragment = document.createDocumentFragment();
+        for (let i = 0; i < 10000; i++) {
+            let div = document.createElement("div");
+            div.innerHTML = "index: " + i;
+            fragment.appendChild(div);
+        }
+        setTimeout(() => {
+            box.appendChild(fragment);
+        }, 5000)
+
+
+
+
         function Foo() {
             Foo.a = function() {
                 console.log(1)
