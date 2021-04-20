@@ -48,6 +48,7 @@
 
             // 前序遍历/先序遍历 根->左->右
             let preOrder = function (node) {
+                if (!node || node.value === null) return null;
                 if(node) {
                     console.log(node.value);
                     preOrder(node.left)
@@ -57,6 +58,7 @@
 
             // 中序遍历 左->根->右
             let inOrder = function (node) {
+                if (!node || node.value === null) return null;
                 if (node) {
                     inOrder(node.left)
                     console.log(node);
@@ -65,7 +67,8 @@
             }
 
             // 后序遍历 左->右->根
-            let postOrder = function (node) {
+            let nextOrder = function (node) {
+                if (!node || node.value === null) return null;
                 if (node) {
                     nextOrder(node.left)
                     nextOrder(node.right)
