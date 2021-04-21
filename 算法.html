@@ -9,21 +9,19 @@
         <img src="">
 
         <script type="text/javascript">
-            // 二分查找
-            // 非递归实现的js代码
+            // 二分查找、非递归实现的js代码
             function binary_search(arr, key) {
-                var low = 0, high = arr.length - 1;
+                var start = 0, end = arr.length - 1;
             
-                while(low <= high) {
-                    var mid = parseInt((high + low) /2);
-                    // console.log(mid+'h'+high+'l'+low);
-                    if(key == arr[mid]) {
+                while(start <= end) {
+                    var mid = parseInt((end + start) /2);
+                    if(key === arr[mid]) {
                         return mid;
                     }
-                    if(key > arr[mid]) {
-                        low = mid + 1;
+                    if(arr[mid] < key) {
+                        start = mid + 1;
                     } else {
-                        high = mid -1;
+                        end = mid -1;
                     }
                 }
                 return -1
