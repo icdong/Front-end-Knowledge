@@ -11,7 +11,7 @@
 	<script type="text/javascript">
 		// ---------------------------------------- 造轮子篇
 		
-		
+        // 实现reduce()
 		
 		
 		// 使用迭代的方式实现 flatten 函数
@@ -153,7 +153,6 @@
 		// 浏览器环境: Chirs programmer 20; node 环境: undefined teacher 25
 
 
-
 		// bind 和 call/apply 有一个很重要的区别，一个函数被 call/apply 的时候，
 		// 会直接调用，但是 bind 会创建一个新函数。当这个新函数被调用时，
 		// bind() 的第一个参数将作为它运行时的 this，
@@ -248,14 +247,10 @@
 		    });
 		}
 
-
-
-
         // 实现一个JSON.parse
 		// Function 有动态编译js的功能
 		let jsonStr = '{ "age": 20, "name": "jack" }';
 		let json = (new Function('return ' + jsonStr))();
-
 
 		// 实现一个JSON.stringify
 		function jsonStringify(obj) {
@@ -281,20 +276,6 @@
 		        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}")
 		    }
 		}
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
 
 	    // ------------------------------------------------- 常考篇
 
@@ -354,40 +335,6 @@
 		}
 		Array.from(new Set(arr));
 		[...new Set(arr)];
-
-
-
-	    // 防抖(debounce): n秒内函数只会执行一次，
-		// 如果n秒内高频事件再次被触发，则重新计算时间
-		// 假定在做公交车时，司机需等待最后一个人进入后再关门，
-		// 每次新进一个人，司机就会把计时器清零并重新开始计时，
-		// 重新等待 1 分钟再关门，如果后续 1 分钟内都没有乘客上车，
-		// 司机会认为乘客都上来了，将关门发车。
-		function debounce(func, time) {
-			let timeout;
-			return () => {
-				if (timeout) {
-					clearTimeout(timeout)
-				}
-				timeout = setTimeout({func}, time)
-			}
-		}
-
-		// 节流：在某段时间内，不管你触发了多少次回调，
-		// 都只认第一次，并在计时结束时给予响应。
-		// 公交车开车，只认第一个人上车后5分钟就开车
-		function throttle(fn, time) {
-			let preTime = 0;
-			return () => {
-				const remainTime = time - (Date.now() - preTime);
-				if (remainTime <= 0) {
-					fn();
-					preTime = Date.now();
-				}
-			}
-		}
-
-
 
 	    // 简单实现双向数据绑定mvvm
 		// 上面配合 html 代码

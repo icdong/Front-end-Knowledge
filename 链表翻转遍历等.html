@@ -1,0 +1,93 @@
+<!--
+ * @Description: 
+ * @Author: Daito Chai
+ * @Date: 2021-04-21 15:12:55
+ * @LastEditors: Daito Chai
+ * @LastEditTime: 2021-04-21 15:29:52
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        //节点构造函数
+        function Node(val){
+            this.val = val
+            this.next = null
+        }
+        //定义链表
+        function List(array){
+            this.head = null
+            let i = 0,temp = null
+            while(i < array.length){
+                if( i === 0){
+                    this.head = new Node(array[i])
+                    temp = this.head
+                }else{
+                    let newNode = new Node(array[i])
+                    temp.next = newNode
+                    temp = temp.next
+                }
+                i++
+            }
+        }
+        //遍历链表
+        function traverseList(listHead){
+            while(listHead){
+                console.log(listHead.val)    
+                listHead = listHead.next
+            }
+        }
+
+        // 迭代
+        // 翻转链表
+        var reverseList1 = function (head) {
+            let pre = null
+            while (head) {
+                next = head.next
+                head.next = pre
+                pre = head
+                head = next
+            }
+            return pre
+        };
+
+        // 迭代
+        var reverseList2 = function(head) {
+            if (head === null || head.next === null) {    // 链表为空或只有一个节点时，不用反转
+                return head;
+            }
+            var p = head.next;
+            head.next = null;    // 让原本的head变为尾节点
+            var temp;    // 临时指针
+            while (p !== null) {
+                temp = p.next;
+                p.next = head;
+                head = p;
+                p = temp;
+            }
+            return head;
+        };
+
+        // 递归
+        // 函数返回的是原链表的尾节点，即新链表的头节点。新链表的尾节点指向null。
+        var reverseList3 = function(head) {
+            if (head === null || head.next === null) {
+                return head;
+            }
+
+            var new_head = reverseList(head.next);  // 反转后的头节点
+            head.next.next = head;                  // 将反转后的链表的尾节点与当前节点相连
+            head.next = null;
+            return new_head;
+        };
+
+
+    </script>
+</body>
+</html>
