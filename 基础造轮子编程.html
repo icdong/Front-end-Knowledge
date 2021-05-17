@@ -175,26 +175,6 @@
 		// }
 		// let o = new test2();
 
-		// 刘小夕版本
-	    Function.prototype.bind = function(context) {
-		    if (typeof this !== "function") {
-		       throw new TypeError("not a function");
-		    }
-		    let self = this;
-		    let args = [...arguments].slice(1);
-		    function Fn() {};
-		    Fn.prototype = this.prototype;
-		    let bound = function() {
-		        //bind传递的参数和函数调用时传递的参数拼接
-		        let res = [...args, ...arguments]; 
-		        context = this instanceof Fn ? this : context || this;
-		        return self.apply(context, res);
-		    }
-		    //原型链
-		    bound.prototype = new Fn();
-		    return bound;
-		}
-
 		// 网上版本
 	    Function.prototype._bind = function () {
 	    	// 1、判断

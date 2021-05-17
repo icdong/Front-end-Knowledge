@@ -168,28 +168,6 @@
 
 		console.log(bfs(list, '122'))
 
-
-
-
-
-        // 算法题之「两数之和」
-        function anwser (arr, target) {
-            let map = {}
-            for (let i = 0; i < arr.length; i++) {
-                map[arr[i]] = i
-            }
-            for (let i = 0; i < arr.length; i++) {
-                var d = target - arr[i]
-                if (map[d]) {
-                    return [i, map[d]]
-                }
-            }
-            return new Error('404 not found')
-        }
-
-
-
-
         // 算法题「移动零」，给定一个数组 nums，
         // 编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序
         var arr = [1, 2, 3, 0, 0, 0, 4, 5, 0, 6]
