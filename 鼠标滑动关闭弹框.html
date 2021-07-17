@@ -1,0 +1,156 @@
+<!--
+ * @Description: 
+ * @Author: Daito Chai
+ * @Date: 2021-07-10 17:32:05
+ * @LastEditors: Daito Chai
+ * @LastEditTime: 2021-07-10 17:32:05
+-->
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			width: 100%;
+			height: 100%;
+		}
+		.container {
+			position: fixed;
+			width: 100%;
+			height: 100%;
+			padding: 10% 20%;
+			box-sizing: border-box;
+			background: #ddd;
+		}
+		.window {
+			width: 100%;
+			height: 100%;
+			background: #fff;
+		}
+	</style>
+</head>
+<body>
+	<div class="container"
+		ng-controller="myCtrl"
+		ng-mousemove="mousemove($event)">
+		<div class="window">
+			<!-- <span ng-repeat="item in array_x">{{item}},&nbsp;&nbsp;&nbsp;</span> -->
+		</div>
+	</div>
+	<script type="text/javascript" src="./angular.min.js"></script>
+	<script type="text/javascript">
+		let app = angular.module('app',[])
+		.controller('myCtrl', ['$scope', function ($scope) {
+			// body...
+			let array_a = [],array_b = [],array_c = [];
+
+			$scope.array_Q = [];
+
+			$scope.array_z = [];
+
+			$scope.mousemove = $event => {
+				$scope.t = $event.timeStamp;
+
+				let Q = {
+					x: $event.x,// 横坐标
+					y: $event.y,// 纵坐标
+					t: $event.timeStamp,// 时间
+				}
+				
+				$scope.array_Q.push(Q);
+
+				// $scope.array_z = [];
+			}
+
+			$scope.$watch('t', (newV, oldV) => {
+				if ($scope.array_Q.length <= 1) return;
+				// 数组起始项
+				let x0 = $scope.array_Q[0].x;
+				let x1 = $scope.array_Q[1].x;
+				let y0 = $scope.array_Q[0].y;
+				let y1 = $scope.array_Q[1].y;
+
+				// 倒数第一项
+				let n1 = $scope.array_Q.length - 1;
+				let x_end = $scope.array_Q[n1].x;
+				let y_end = $scope.array_Q[n1].y;
+
+				// 倒数第二项
+				let n2 = $scope.array_Q.length - 2;
+				let x_end_1 = $scope.array_Q[n2].x;
+				let y_end_1 = $scope.array_Q[n2].y;
+
+				// let z;
+				// let _z = Math.pow((x1-x0), 2) + Math.pow((y1-y0), 2)// 定理
+
+				// 起始向右滑动
+				if(x0 < x1) {
+					// console.log('起始向右');
+
+					// z = Math.sqrt(_z);
+					if (x_end < x_end_1) {
+						console.log('转向左');
+
+						array_a = $scope.array_Q.splice(0, n2);
+
+
+						// array_b = $scope.array_x;
+
+						console.log(array_a);
+						console.log($scope.array_Q);
+						
+
+
+
+
+
+					} else if(x_end == x_end_1) {
+						if (y_end < y_end_1) {
+							console.log('转向上');
+
+						} else {
+							console.log('转向下');
+
+						}
+					}
+
+				} else if(x0 > x1) {// 起始向左滑动
+					console.log('起始向左');
+
+					if (x_end > x_end_1) {
+						console.log('转向右');
+
+					} else if(x_end == x_end_1) {
+						if (y_end < y_end_1) {
+							console.log('向上');
+
+						} else {
+							console.log('向下');
+
+						}
+					}
+				
+				} else if(x0 == x1) {// 起始向下或向上（概率很小但考虑在内）
+					// 起始向下滑动
+					if (y0 < y1) {
+						z = y1 - y0;
+						console.log('起始向下');
+
+					}
+					// 起始向上滑动
+					if (y0 > y1) {
+						z = y1 - y0;
+						console.log('起始向上');
+						
+					}
+				}
+			});
+		}]);
+	</script>
+</body>
+</html>
